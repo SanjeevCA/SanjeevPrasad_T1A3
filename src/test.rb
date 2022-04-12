@@ -5,11 +5,10 @@ print "Enter a word: "
 
 word = gets.chomp
 
+# Check if word is correct using gem
 puts word.correct?
 
 # uses all the letters -> need to create function that iterates though different combinations
-# descrambler = WordScramble::Descrambler.new(word)
-# pp descrambler.matching_words
 
 i = 9
 
