@@ -1,0 +1,25 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    camdict (2.0.0)
+      nokogiri (>= 1.6.2)
+    colorize (0.8.1)
+    nokogiri (1.13.4-x86_64-linux)
+      racc (~> 1.4)
+    racc (1.6.0)
+    ru_bee (0.1.1)
+    rword (1.1.1)
+    word_scramble (0.1.0)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  camdict (~> 2.0)
+  colorize (~> 0.8.1)
+  ru_bee (~> 0.1.1)
+  rword (~> 1.1)
+  word_scramble (~> 0.1.0)
+
+BUNDLED WITH
+   2.3.11
