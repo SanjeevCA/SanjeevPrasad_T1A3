@@ -7,6 +7,7 @@ require 'rword'
 require 'tty-prompt'
 require 'colorize'
 require 'meaning'
+require 'word_wrap'
 
 #                                       -FUNCTIONS-
 # ===========================================================================================
@@ -74,13 +75,13 @@ def pick_letters()
         # If the remaining letters to be picked equal the remaining vowels to be picked
         # then automatically pick the remaining vowels
         if i <= vowel_num
-            $scrambled_word += " " + draw_letter($vowels)
+            $scrambled_word += draw_letter($vowels)
             vowel_num -= 1
             sleep(0.2) # slow the program down to see the letters being picked automatically
 
         # Same with the consonants 
         elsif i <= cons_num
-            $scrambled_word += " " + draw_letter($consonants)
+            $scrambled_word += draw_letter($consonants)
             cons_num
             sleep(0.2)            
 
@@ -93,13 +94,14 @@ def pick_letters()
 
                 # Draw the first vowel off the pile and place in the scrambled word
                 # A space is added before the letter for formatting purposes
-                $scrambled_word += " " + draw_letter($vowels)
+                # $scrambled_word += " " + draw_letter($vowels)
+                $scrambled_word += draw_letter($vowels)
 
                 vowel_num -= 1
             else
                 # Draw the first consonant off the pile and place in the scrambled word
                 # A space is added before the letter for formatting purposes
-                $scrambled_word += " " + draw_letter($consonants)
+                $scrambled_word += draw_letter($consonants)
 
                 cons_num -= 1
             end
@@ -114,6 +116,22 @@ def pick_letters()
 
 end
 
+# Check to see if the user used only the available letters
+def compare_word_arrays(player_word, letter_pool)
+
+    valid = true
+
+    player_word.each {|c|
+        if letter_pool.include?(c)
+            letter_pool.delete(c)
+        else
+            valid = false
+        end
+    }
+
+    return valid
+end
+
 # Allow the player to input a word and check its validity
 def play_words
 
@@ -126,7 +144,8 @@ def play_words
         puts "Try and find the longest possible word. Using each letter only ONCE."
         puts "-----------------------------------------------------------------------"
         
-        puts $scrambled_word
+        # Split the string, add spaces, join the string again
+        puts ($scrambled_word.split("").map { |c| c + " "}).join
         
         puts "-----------------------------------------------------------------------"
 
@@ -134,10 +153,15 @@ def play_words
         
         print "Enter a word: "
         
-        word = gets.chomp
+        # Remove all whitespace
+        word = gets.chomp.gsub(/\s+/, '').upcase
         
+        # Check if word uses only the letters provided
+        word_to_array = word.split("")
+        letters_available = $scrambled_word.split("")
+
         # Check if word is correct using gem
-        if word.correct?
+        if word.correct? && compare_word_arrays(word_to_array, letters_available) && word != ""
             puts "\n#{(" "+ word +" ").upcase.black.on_light_green} is valid.\n\n"
             break
         else
@@ -181,7 +205,8 @@ def best_word
                     puts definition.gsub("\n", ' ').squeeze(' ') # Format the definition nicely, as sometimes it returns a string with extra spaces
                     break
                 else
-                    best_words.remove(define_word)
+                    # No definition, so delete and try another
+                    best_words.delete(define_word)
                 end
             end         
 

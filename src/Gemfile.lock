@@ -29,6 +29,7 @@ GEM
     tty-screen (0.8.1)
     wisper (2.0.1)
     word_scramble (0.1.0)
+    word_wrap (1.0.0)
 
 PLATFORMS
   x86_64-linux
@@ -42,6 +43,7 @@ DEPENDENCIES
   rword (~> 1.1)
   tty-prompt (~> 0.23.1)
   word_scramble (~> 0.1.0)
+  word_wrap (~> 1.0)
 
 BUNDLED WITH
    2.3.11

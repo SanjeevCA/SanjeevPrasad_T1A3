@@ -20,3 +20,5 @@ gem "oxford_dictionary", "~> 3.0"
 gem "dictionary_lookup", "~> 0.3.0"
 
 gem "meaning", "~> 0.1.5"
+
+gem "word_wrap", "~> 1.0"

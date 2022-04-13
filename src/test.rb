@@ -8,6 +8,7 @@ require 'colorize'
 require 'oxford_dictionary'
 require 'dictionary_lookup'
 require 'meaning'
+require 'word_wrap'
 
 
 client = OxfordDictionary::Client.new(app_id: 'f4feab1e', app_key: 'e09623e3bd0b048c5ea3bbf90f9cec4c')
@@ -16,8 +17,9 @@ client = OxfordDictionary.new(app_id: 'f4feab1e', app_key: 'e09623e3bd0b048c5ea3
 puts " valid ".black.on_light_green
 print "Enter a word: "
 
-word = gets.chomp
+word = gets.chomp.gsub(/\s+/, '')
 
+pp word
 
 # Check if word is correct using gem
 puts word.correct?
@@ -32,7 +34,10 @@ definition = (cam.dictionary[:definitions]).shift
 # definition = definition.gsub(/\n\s+/, " ")
 definition = definition.gsub("\n", ' ').squeeze(' ')
 
+
+WordWrap.ww definition, 2
 pp definition
+
 
 # pp (((cam.dictionary[:definitions]).shift).strip).capitalize
 
