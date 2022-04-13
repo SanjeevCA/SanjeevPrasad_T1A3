@@ -1,7 +1,12 @@
+# Do not display deprecation warning messages from gems.
+original_verbosity = $VERBOSE
+$VERBOSE = nil
+
 require 'ru_bee'
 require 'rword'
 require 'tty-prompt'
 require 'colorize'
+require 'meaning'
 
 #                                       -FUNCTIONS-
 # ===========================================================================================
@@ -109,7 +114,84 @@ def pick_letters()
 
 end
 
+# Allow the player to input a word and check its validity
+def play_words
 
+    message = ""
+
+    # Loop until 30 seconds / player enters a valid word
+    while true
+        system 'clear'        
+
+        puts "Try and find the longest possible word. Using each letter only ONCE."
+        puts "-----------------------------------------------------------------------"
+        
+        puts $scrambled_word
+        
+        puts "-----------------------------------------------------------------------"
+
+        puts message
+        
+        print "Enter a word: "
+        
+        word = gets.chomp
+        
+        # Check if word is correct using gem
+        if word.correct?
+            puts "\n#{(" "+ word +" ").upcase.black.on_light_green} is valid.\n\n"
+            break
+        else
+            message = "\n#{(" "+ word +" ").upcase.black.on_red} is invalid. Try another word.\n\n"
+        end
+    end
+
+end
+
+# The best possible answer that could be played is shown to the player, along with a definition
+def best_word
+
+    # uses all the letters -> need to create function that iterates though different combinations
+    i = 9
+
+    testword = $scrambled_word.delete(' ')
+    testword.downcase!
+
+    while i >= 2
+        # Generate the words and display the longest ones
+        # Maybe randomly pick a long word to display?
+
+        # Add all possible words (en_us) of length (i) to an array
+        best_words = Rword.generate(testword, i, true)
+
+        if best_words.length > 0
+            puts "--------------------"
+            puts best_words
+            puts "--------------------"
+            
+            while best_words.length > 0
+
+                # Try and find a defintion of the word
+                define_word = best_words.sample
+                puts define_word.upcase
+                find_def = Meaning::MeaningLab.new define_word
+
+                # If there is a definition for the word, put it, otherwise look for another word
+                if (find_def.dictionary).key?(:definitions)
+                    definition = '"' + ((find_def.dictionary[:definitions]).shift).capitalize + '"'
+                    puts definition.gsub("\n", ' ').squeeze(' ') # Format the definition nicely, as sometimes it returns a string with extra spaces
+                    break
+                else
+                    best_words.remove(define_word)
+                end
+            end         
+
+            break
+        else
+            i -= 1
+        end    
+    end
+
+end
 
 
 #                                       -MAIN PROGRAM-
@@ -120,45 +202,10 @@ create_letter_pools
 
 pick_letters
 
+play_words
 
-# Game section
+best_word
 
-system 'clear'
 
-puts "Try and find the longest possible word. Using each letter only ONCE."
-puts "-----------------------------------------------------------------------"
 
-puts $scrambled_word
 
-puts "-----------------------------------------------------------------------\n\n"
-
-puts
-print "Enter a word: "
-
-word = gets.chomp
-
-# Check if word is correct using gem
-puts word.correct?
-
-# uses all the letters -> need to create function that iterates though different combinations
-
-i = 9
-
-testword = $scrambled_word.delete(' ')
-
-testword.downcase!
-
-while i >= 2
-    # Generate the words and display the longest ones
-    # Maybe randomly pick a long word to display?
-    best_words = Rword.generate(testword, i, true)
-
-    if best_words.length > 0
-        puts "--------------------"
-        puts best_words
-        puts "--------------------"
-        break
-    else
-        i -= 1
-    end    
-end
