@@ -22,12 +22,14 @@ def create_letter_pools()
     $consonants.shuffle!
 end
 
+# Draw a letter from the pile in the argument
 def draw_letter(array)
 
     return array.shift
     
 end
 
+# The letter picking loop/process
 def pick_letters()
     $scrambled_word = ""
 
@@ -39,45 +41,71 @@ def pick_letters()
     while i > 0 
         system 'clear'
 
+        choose_text = ""
 
+        # Display how many more vowels & consonants need to be picked
+        if vowel_num > 0
+            choose_text += " #{vowel_num} more vowels."
+        end
 
-        puts "You must choose #{i} more letters. Please pick at #{vowel_num} more vowels and #{cons_num} more consonants."
-        puts "-----------------------------------------------------------------------------------------------------------"
+        if cons_num > 0
+            choose_text += " #{cons_num} more consonants."
+        end
+        
+        if choose_text.length > 0
+            choose_text = " Please pick:" + choose_text
+        end
+
+        puts "You must choose #{i} more letters." + choose_text
+        puts "-----------------------------------------------------------------------"
 
         puts $scrambled_word
 
-        puts "-----------------------------------------------------------------------------------------------------------\n\n"
+        puts "-----------------------------------------------------------------------\n\n"
     
         # puts "Vowels: #{$vowels.length}"
         # puts "Cons: #{$consonants.length}"
 
-        # Ask player what letter they would like
-        prompt = TTY::Prompt.new
-        choice = prompt.select("Would you like a vowel or consonant?", %w(Vowel Consonant))
-        puts choice
-
-        if choice == "Vowel"
-
-            # Draw the first vowel off the pile and place in the scrambled word
-            # A space is added before the letter for formatting purposes
+        # If the remaining letters to be picked equal the remaining vowels to be picked
+        # then automatically pick the remaining vowels
+        if i <= vowel_num
             $scrambled_word += " " + draw_letter($vowels)
-
             vowel_num -= 1
-        else
-            # Draw the first consonant off the pile and place in the scrambled word
-            # A space is added before the letter for formatting purposes
-            $scrambled_word += " " + draw_letter($consonants)
+            sleep(0.2) # slow the program down to see the letters being picked automatically
 
-            cons_num -= 1
+        # Same with the consonants 
+        elsif i <= cons_num
+            $scrambled_word += " " + draw_letter($consonants)
+            cons_num
+            sleep(0.2)            
+
+        else # Ask player what letter they would like
+            
+            prompt = TTY::Prompt.new
+            choice = prompt.select("Would you like a vowel or consonant?", %w(Vowel Consonant))
+
+            if choice == "Vowel"
+
+                # Draw the first vowel off the pile and place in the scrambled word
+                # A space is added before the letter for formatting purposes
+                $scrambled_word += " " + draw_letter($vowels)
+
+                vowel_num -= 1
+            else
+                # Draw the first consonant off the pile and place in the scrambled word
+                # A space is added before the letter for formatting purposes
+                $scrambled_word += " " + draw_letter($consonants)
+
+                cons_num -= 1
+            end
         end
 
         # Iterate
         i -= 1
 
-        puts "Vowels: #{$vowels.length}"
-        puts "Cons: #{$consonants.length}"
-    end
+    end # End while
     
+    sleep(0.2) 
 
 end
 
@@ -95,9 +123,14 @@ pick_letters
 
 # Game section
 
-puts "--------------------"
+system 'clear'
+
+puts "Try and find the longest possible word. Using each letter only ONCE."
+puts "-----------------------------------------------------------------------"
+
 puts $scrambled_word
-puts "--------------------"
+
+puts "-----------------------------------------------------------------------\n\n"
 
 puts
 print "Enter a word: "
