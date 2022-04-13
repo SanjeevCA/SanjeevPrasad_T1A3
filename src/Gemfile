@@ -12,3 +12,5 @@ gem "ru_bee", "~> 0.1.1"
 
 
 gem "rword", "~> 1.1"
+
+gem "tty-prompt", "~> 0.23.1"

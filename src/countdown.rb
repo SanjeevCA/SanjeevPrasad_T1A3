@@ -1,6 +1,10 @@
 require 'ru_bee'
 require 'rword'
+require 'tty-prompt'
+require 'colorize'
 
+#                                       -FUNCTIONS-
+# ===========================================================================================
 
 # Generate the pools of vowels and consonants
 # The frequency of each letter is obtained from: http://www.thecountdownpage.com/letters.htm
@@ -18,31 +22,81 @@ def create_letter_pools()
     $consonants.shuffle!
 end
 
-create_letter_pools()
+def draw_letter(array)
 
-
-scrambled_word = ""
-
-for i in 1..4
-    # Add the first letter to the scrambled word
-    scrambled_word += " " + $vowels[0]
-
-    # Remove the first letter from the pile
-    $vowels = $vowels.drop(1)
+    return array.shift
+    
 end
 
-for i in 1..5
-    # Add the first letter to the scrambled word
-    scrambled_word += " " + $consonants[0]
+def pick_letters()
+    $scrambled_word = ""
 
-    # Remove the first letter from the pile
-    $consonants = $consonants.drop(1)
+    # Player must choose 9 letters (3 vowels and 4 consonants are a must)
+    i = 9
+    vowel_num = 3
+    cons_num = 4
+
+    while i > 0 
+        system 'clear'
+
+
+
+        puts "You must choose #{i} more letters. Please pick at #{vowel_num} more vowels and #{cons_num} more consonants."
+        puts "-----------------------------------------------------------------------------------------------------------"
+
+        puts $scrambled_word
+
+        puts "-----------------------------------------------------------------------------------------------------------\n\n"
+    
+        # puts "Vowels: #{$vowels.length}"
+        # puts "Cons: #{$consonants.length}"
+
+        # Ask player what letter they would like
+        prompt = TTY::Prompt.new
+        choice = prompt.select("Would you like a vowel or consonant?", %w(Vowel Consonant))
+        puts choice
+
+        if choice == "Vowel"
+
+            # Draw the first vowel off the pile and place in the scrambled word
+            # A space is added before the letter for formatting purposes
+            $scrambled_word += " " + draw_letter($vowels)
+
+            vowel_num -= 1
+        else
+            # Draw the first consonant off the pile and place in the scrambled word
+            # A space is added before the letter for formatting purposes
+            $scrambled_word += " " + draw_letter($consonants)
+
+            cons_num -= 1
+        end
+
+        # Iterate
+        i -= 1
+
+        puts "Vowels: #{$vowels.length}"
+        puts "Cons: #{$consonants.length}"
+    end
+    
+
 end
+
+
+
+
+#                                       -MAIN PROGRAM-
+# ===========================================================================================
+
+
+create_letter_pools
+
+pick_letters
+
 
 # Game section
 
 puts "--------------------"
-puts scrambled_word.downcase
+puts $scrambled_word
 puts "--------------------"
 
 puts
@@ -57,7 +111,7 @@ puts word.correct?
 
 i = 9
 
-testword = scrambled_word.delete(' ')
+testword = $scrambled_word.delete(' ')
 
 testword.downcase!
 
