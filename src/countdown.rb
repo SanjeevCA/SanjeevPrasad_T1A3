@@ -69,9 +69,6 @@ def pick_letters()
 
         puts "-----------------------------------------------------------------------\n\n"
     
-        # puts "Vowels: #{$vowels.length}"
-        # puts "Cons: #{$consonants.length}"
-
         # If the remaining letters to be picked equal the remaining vowels to be picked
         # then automatically pick the remaining vowels
         if i <= vowel_num
@@ -120,10 +117,14 @@ end
 def compare_word_arrays(player_word, letter_pool)
 
     valid = true
+    
+    # pp player_word
 
     player_word.each {|c|
+        
         if letter_pool.include?(c)
-            letter_pool.delete(c)
+            letter_pool.delete_at(letter_pool.index(c))
+            # letter_pool.delete_at(letter_pool.index(c) || letter_pool.length)
         else
             valid = false
         end
@@ -203,6 +204,7 @@ def best_word
                 if (find_def.dictionary).key?(:definitions)
                     definition = '"' + ((find_def.dictionary[:definitions]).shift).capitalize + '"'
                     puts definition.gsub("\n", ' ').squeeze(' ') # Format the definition nicely, as sometimes it returns a string with extra spaces
+                    puts
                     break
                 else
                     # No definition, so delete and try another
