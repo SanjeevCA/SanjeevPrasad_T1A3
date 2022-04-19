@@ -9,6 +9,8 @@ require 'colorize'
 require 'meaning'
 require 'word_wrap'
 
+require_relative './define'
+
 #                                       -FUNCTIONS-
 # ===========================================================================================
 
@@ -154,8 +156,9 @@ def play_words
         
         print "Enter a word: "
         
-        # Remove all whitespace
+        # Remove all whitespace and brackets
         word = gets.chomp.gsub(/\s+/, '').upcase
+        # word = word.gsub(/\[+$/, '')
         
         # Check if word uses only the letters provided
         word_to_array = word.split("")
@@ -199,17 +202,19 @@ def best_word
                 define_word = best_words.sample
                 puts define_word.upcase
                 find_def = Meaning::MeaningLab.new define_word
-
-                # If there is a definition for the word, put it, otherwise look for another word
-                if (find_def.dictionary).key?(:definitions)
-                    definition = '"' + ((find_def.dictionary[:definitions]).shift).capitalize + '"'
-                    puts definition.gsub("\n", ' ').squeeze(' ') # Format the definition nicely, as sometimes it returns a string with extra spaces
-                    puts
-                    break
-                else
-                    # No definition, so delete and try another
-                    best_words.delete(define_word)
-                end
+                puts define(define_word)
+                puts 
+                break
+                # # If there is a definition for the word, put it, otherwise look for another word
+                # if (find_def.dictionary).key?(:definitions)
+                #     definition = '"' + ((find_def.dictionary[:definitions]).shift).capitalize + '"'
+                #     puts definition.gsub("\n", ' ').squeeze(' ') # Format the definition nicely, as sometimes it returns a string with extra spaces
+                #     puts
+                #     break
+                # else
+                #     # No definition, so delete and try another
+                #     best_words.delete(define_word)
+                # end
             end         
 
             break
@@ -224,15 +229,25 @@ end
 #                                       -MAIN PROGRAM-
 # ===========================================================================================
 
+while true
 
-create_letter_pools
+    create_letter_pools
 
-pick_letters
+    pick_letters
 
-play_words
+    play_words
 
-best_word
+    best_word
 
+    puts "-----------------------------------------------------------------------"
+    # Play again?
+    prompt = TTY::Prompt.new
+    choice = prompt.select("Would you like to play again?", %w(Yes No))
 
+    if choice == "No"
+        break
+    end
+    
 
+end
 
