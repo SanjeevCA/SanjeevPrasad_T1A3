@@ -1,15 +1,17 @@
 # Do not display deprecation warning messages from gems.
-original_verbosity = $VERBOSE
-$VERBOSE = nil
+# original_verbosity = $VERBOSE
+# $VERBOSE = nil
 
 require 'ru_bee'
 require 'rword'
 require 'tty-prompt'
 require 'colorize'
-require 'meaning'
+require 'pastel'
 require 'word_wrap'
+require 'nokogiri'
+require 'open-uri'
 
-require_relative './define'
+# require_relative './define'
 
 #                                       -FUNCTIONS-
 # ===========================================================================================
@@ -175,6 +177,20 @@ def play_words
 
 end
 
+# Define a word
+def define(word)
+
+    # Go to the word page on dictionary.com
+    url = 'https://www.dictionary.com/browse/'+ word
+
+    # Scrape the HTML of the page using Nokogiri
+    document = Nokogiri::HTML(URI.open(url))
+
+    # Search for the definition by finding the element where value=1 in the HTML code.
+    # This denotes the first definition
+    return document.at_css('[value="1"]').to_str.capitalize
+end
+
 # The best possible answer that could be played is shown to the player, along with a definition
 def best_word
 
@@ -192,30 +208,35 @@ def best_word
         best_words = Rword.generate(testword, i, true)
 
         if best_words.length > 0
-            puts "--------------------"
-            puts best_words
-            puts "--------------------"
-            
-            while best_words.length > 0
 
-                # Try and find a defintion of the word
-                define_word = best_words.sample
-                puts define_word.upcase
-                find_def = Meaning::MeaningLab.new define_word
-                puts define(define_word)
-                puts 
-                break
-                # # If there is a definition for the word, put it, otherwise look for another word
-                # if (find_def.dictionary).key?(:definitions)
-                #     definition = '"' + ((find_def.dictionary[:definitions]).shift).capitalize + '"'
-                #     puts definition.gsub("\n", ' ').squeeze(' ') # Format the definition nicely, as sometimes it returns a string with extra spaces
-                #     puts
-                #     break
-                # else
-                #     # No definition, so delete and try another
-                #     best_words.delete(define_word)
-                # end
-            end         
+            # Limit the best words to only 3
+            if best_words.length > 3                
+                best_words = best_words.sample(3)
+            end
+        
+            # shuffle the words so no longer alphabetical
+            best_words.shuffle!
+
+            # puts "--------------------"
+            # puts best_words
+            # puts "--------------------"
+
+            # Find and display the definition of the top word.
+            pastel = Pastel.new
+            define_word = best_words[0]
+            best_words = best_words.drop(1)
+            puts "-----------------------------------------------------------------------"
+            puts define_word.upcase.yellow.underline
+            puts
+            puts WordWrap.ww(pastel.italic.dim.yellow(define(define_word)), 80)
+            puts "-----------------------------------------------------------------------"
+
+            if best_words.length > 0
+                puts
+                puts "Other possible word(s): #{best_words}"
+            end
+
+            puts
 
             break
         else
