@@ -11,6 +11,8 @@ require 'word_wrap'
 require 'nokogiri'
 require 'open-uri'
 
+$pastel = Pastel.new
+
 # require_relative './define'
 
 #                                       -FUNCTIONS-
@@ -37,6 +39,13 @@ def draw_letter(array)
 
     return array.shift
     
+end
+
+# Timer
+def timer(start_time)
+    # Mark the time this function was called
+    elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
+    return elapsed
 end
 
 # The letter picking loop/process
@@ -69,7 +78,8 @@ def pick_letters()
         puts "You must choose #{i} more letters." + choose_text
         puts "-----------------------------------------------------------------------"
 
-        puts $scrambled_word
+        # puts $pastel.bold.white.on_blue($scrambled_word)
+        puts $pastel.bold.white.on_blue(" " + ($scrambled_word.split("").map { |c| c + " "}).join)
 
         puts "-----------------------------------------------------------------------\n\n"
     
@@ -142,15 +152,18 @@ def play_words
 
     message = ""
 
+    start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
     # Loop until 30 seconds / player enters a valid word
-    while true
+    while timer(start_time) < 5.0
         system 'clear'        
 
         puts "Try and find the longest possible word. Using each letter only ONCE."
+        puts timer(start_time)
         puts "-----------------------------------------------------------------------"
         
         # Split the string, add spaces, join the string again
-        puts ($scrambled_word.split("").map { |c| c + " "}).join
+        puts $pastel.bold.white.on_blue(" " + ($scrambled_word.split("").map { |c| c + " "}).join)
         
         puts "-----------------------------------------------------------------------"
 
@@ -171,7 +184,7 @@ def play_words
             puts "\n#{(" "+ word +" ").upcase.black.on_light_green} is valid.\n\n"
             break
         else
-            message = "\n#{(" "+ word +" ").upcase.black.on_red} is invalid. Try another word.\n\n"
+            message = "\n#{(" "+ word +" ").upcase.white.on_red} is invalid. Try another word.\n\n"
         end
     end
 
@@ -222,13 +235,12 @@ def best_word
             # puts "--------------------"
 
             # Find and display the definition of the top word.
-            pastel = Pastel.new
             define_word = best_words[0]
             best_words = best_words.drop(1)
             puts "-----------------------------------------------------------------------"
             puts define_word.upcase.yellow.underline
             puts
-            puts WordWrap.ww(pastel.italic.dim.yellow(define(define_word)), 80)
+            puts WordWrap.ww($pastel.italic.dim.yellow(define(define_word)), 80)
             puts "-----------------------------------------------------------------------"
 
             if best_words.length > 0
