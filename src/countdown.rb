@@ -19,6 +19,8 @@ $pastel = Pastel.new
 $bar = TTY::ProgressBar.new("[:bar]", bar_format: :blade, total: 100)
 $best_words = []
 
+$scores = []
+$best_played_word = ""
 
 # require_relative './define'
 
@@ -150,7 +152,7 @@ def compare_word_arrays(player_word, letter_pool)
 end
 
 # Allow the player to input a word and check its validity
-def play_words
+def play_word
 
     message = ""
 
@@ -190,6 +192,7 @@ def play_words
                 # Check if word is correct using gem
                 if word.correct? && compare_word_arrays(word_to_array, letters_available) && word != ""
                     puts "\n#{(" "+ word +" ").upcase.black.on_light_green} is valid and scores #{score(word)} points!\n\n"
+                    return word
                     break
                 else
                     message = "\n#{(" "+ word +" ").upcase.white.on_red} is invalid. Try another word.\n\n"
@@ -201,6 +204,7 @@ def play_words
         puts '--------------------------------------------'
         puts "TIME IS UP!"
         puts '--------------------------------------------'
+        return ""
     end
 
 
@@ -210,16 +214,20 @@ end
 
 # Define a word
 def define(word)
+    begin
+        # Go to the word page on dictionary.com
+        url = 'https://www.dictionary.com/browse/'+ word
 
-    # Go to the word page on dictionary.com
-    url = 'https://www.dictionary.com/browse/'+ word
+        # Scrape the HTML of the page using Nokogiri
+        document = Nokogiri::HTML(URI.open(url))
 
-    # Scrape the HTML of the page using Nokogiri
-    document = Nokogiri::HTML(URI.open(url))
+        # Search for the definition by finding the element where value=1 in the HTML code.
+        # This denotes the first definition
+        return document.at_css('[value="1"]').to_str.capitalize
+    rescue
+        return "Sorry, a definition could not be found."
+    end
 
-    # Search for the definition by finding the element where value=1 in the HTML code.
-    # This denotes the first definition
-    return document.at_css('[value="1"]').to_str.capitalize
 end
 
 # Score a word
@@ -233,6 +241,7 @@ def score(word)
         value = 18
     end
 
+    $scores << value
     return value
 end
 
@@ -267,57 +276,10 @@ def best_word
     puts "-----------------------------------------------------------------------"
 
     if $best_words.length > 0
+        print "Other possible word(s): "
+        print $best_words.join(", ")
         puts
-        puts "Other possible word(s): #{$best_words}"
     end
-
-    puts
-
-
-
-    # while i >= 2
-    #     # Generate the words and display the longest ones
-    #     # Maybe randomly pick a long word to display?
-
-    #     # Add all possible words (en_us) of length (i) to an array
-    #     best_words = Rword.generate(testword, i, true)
-
-    #     if best_words.length > 0
-
-    #         # Limit the best words to only 3
-    #         if best_words.length > 3                
-    #             best_words = best_words.sample(3)
-    #         end
-        
-    #         # shuffle the words so no longer alphabetical
-    #         best_words.shuffle!
-
-    #         # puts "--------------------"
-    #         # puts best_words
-    #         # puts "--------------------"
-
-    #         # Find and display the definition of the top word.
-    #         define_word = best_words[0]
-    #         best_words = best_words.drop(1)
-    #         puts "-----------------------------------------------------------------------"
-    #         puts define_word.upcase.yellow.underline
-    #         puts
-    #         puts WordWrap.ww($pastel.italic.dim.yellow(define(define_word)), 80)
-    #         puts "-----------------------------------------------------------------------"
-
-    #         if best_words.length > 0
-    #             puts
-    #             puts "Other possible word(s): #{best_words}"
-    #         end
-
-    #         puts
-
-    #         break
-    #     else
-    #         i -= 1
-    #     end    
-    # end
-
 end
 
 # Enumerator to find the best word using 'rword' gem
@@ -353,6 +315,19 @@ $find_word = Enumerator.new do |y|
     end
 end
 
+def player_stats(word)
+
+    if word.length > $best_played_word.length
+        $best_played_word = word
+    end
+    total_score = $scores.sum
+    average_score = (total_score.to_f / $scores.size).round(2)
+
+    puts "-----------------------------------------------------------------------"
+    puts "Total Score: #{total_score.to_s.green} \t Average Score: #{average_score.to_s.green} \t Best Word Played: #{$best_played_word.green}"
+    
+end
+
 #                                       -MAIN PROGRAM-
 # ===========================================================================================
 
@@ -362,9 +337,11 @@ while true
 
     pick_letters
 
-    play_words
+    word = play_word
 
     best_word
+
+    player_stats(word)
 
     puts "-----------------------------------------------------------------------"
     # Play again?
