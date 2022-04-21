@@ -15,6 +15,11 @@ require 'tty-progressbar'
 
 $pastel = Pastel.new
 
+# Progress bar for finding best work (as it can be a lengthy process)
+$bar = TTY::ProgressBar.new("[:bar] :percent", total: 100)
+$best_words = []
+
+
 # require_relative './define'
 
 #                                       -FUNCTIONS-
@@ -224,60 +229,113 @@ def best_word
     # uses all the letters -> need to create function that iterates though different combinations
     i = 9
 
-    testword = $scrambled_word.delete(' ')
-    testword.downcase!
+    # Find the best possible words and show a progress bar 
+    $bar.reset
+    response = $bar.iterate($find_word, 20).to_a.join
 
-    # progress bar
-    bar = TTY::ProgressBar.new("Working: [:bar] :percent")
-
-    while i >= 2
-        # Generate the words and display the longest ones
-        # Maybe randomly pick a long word to display?
-
-        # progress = bar.iterate(downloader, CHUNK_SIZE).to_a.join
-        # puts progress
-
-        # Add all possible words (en_us) of length (i) to an array
-        best_words = Rword.generate(testword, i, true)
-
-        if best_words.length > 0
-
-            # Limit the best words to only 3
-            if best_words.length > 3                
-                best_words = best_words.sample(3)
-            end
-        
-            # shuffle the words so no longer alphabetical
-            best_words.shuffle!
-
-            # puts "--------------------"
-            # puts best_words
-            # puts "--------------------"
-
-            # Find and display the definition of the top word.
-            define_word = best_words[0]
-            best_words = best_words.drop(1)
-            puts "-----------------------------------------------------------------------"
-            puts define_word.upcase.yellow.underline
-            puts
-            puts WordWrap.ww($pastel.italic.dim.yellow(define(define_word)), 80)
-            puts "-----------------------------------------------------------------------"
-
-            if best_words.length > 0
-                puts
-                puts "Other possible word(s): #{best_words}"
-            end
-
-            puts
-
-            break
-        else
-            i -= 1
-        end    
+    # Limit the best words to only 3
+    if $best_words.length > 3                
+        $best_words = $best_words.sample(3)
     end
+
+    # shuffle the words so no longer alphabetical
+    $best_words.shuffle!
+
+    # Find and display the definition of the top word.
+    define_word = $best_words[0]
+    $best_words = $best_words.drop(1)
+    puts "-----------------------------------------------------------------------"
+    puts define_word.upcase.yellow.underline
+    puts
+    puts WordWrap.ww($pastel.italic.dim.yellow(define(define_word)), 80)
+    puts "-----------------------------------------------------------------------"
+
+    if $best_words.length > 0
+        puts
+        puts "Other possible word(s): #{$best_words}"
+    end
+
+    puts
+
+
+
+    # while i >= 2
+    #     # Generate the words and display the longest ones
+    #     # Maybe randomly pick a long word to display?
+
+    #     # Add all possible words (en_us) of length (i) to an array
+    #     best_words = Rword.generate(testword, i, true)
+
+    #     if best_words.length > 0
+
+    #         # Limit the best words to only 3
+    #         if best_words.length > 3                
+    #             best_words = best_words.sample(3)
+    #         end
+        
+    #         # shuffle the words so no longer alphabetical
+    #         best_words.shuffle!
+
+    #         # puts "--------------------"
+    #         # puts best_words
+    #         # puts "--------------------"
+
+    #         # Find and display the definition of the top word.
+    #         define_word = best_words[0]
+    #         best_words = best_words.drop(1)
+    #         puts "-----------------------------------------------------------------------"
+    #         puts define_word.upcase.yellow.underline
+    #         puts
+    #         puts WordWrap.ww($pastel.italic.dim.yellow(define(define_word)), 80)
+    #         puts "-----------------------------------------------------------------------"
+
+    #         if best_words.length > 0
+    #             puts
+    #             puts "Other possible word(s): #{best_words}"
+    #         end
+
+    #         puts
+
+    #         break
+    #     else
+    #         i -= 1
+    #     end    
+    # end
 
 end
 
+# Enumerator to find the best word using 'rword' gem
+# Progress will be yeilded so that it can be displayed in a progress bar
+$find_word = Enumerator.new do |y|
+
+    # setup variables
+    $best_words = []
+    testword = $scrambled_word.delete(' ')
+    testword.downcase!
+
+    # Keep count of iterations
+    count = 0
+
+    # Find possible words starting at 9 letters and then iterating down
+    i = 9
+    while i > 0
+
+        # Increment progress bar with each iteration
+        count += 1
+        y.yield(count)
+
+        # Gem returns an array of possible words of length i
+        $best_words = Rword.generate(testword, i, true)
+
+        # If words are generated
+        if $best_words.length > 0 
+            $bar.finish
+            break
+        else
+            i -= 1
+        end
+    end
+end
 
 #                                       -MAIN PROGRAM-
 # ===========================================================================================
