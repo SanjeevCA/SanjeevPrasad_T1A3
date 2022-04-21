@@ -16,7 +16,7 @@ require 'tty-progressbar'
 $pastel = Pastel.new
 
 # Progress bar for finding best work (as it can be a lengthy process)
-$bar = TTY::ProgressBar.new("[:bar] :percent", total: 100)
+$bar = TTY::ProgressBar.new("[:bar]", bar_format: :blade, total: 100)
 $best_words = []
 
 
@@ -156,7 +156,7 @@ def play_words
 
     # Timer setup
     start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-    play_time = 30
+    play_time = 31
 
     begin
         # Code will be interrupted after 30 seconds
@@ -182,7 +182,6 @@ def play_words
                 
                 # Remove all whitespace and brackets
                 word = gets.chomp.gsub(/\s+/, '').upcase
-                # word = word.gsub(/\[+$/, '')
                 
                 # Check if word uses only the letters provided
                 word_to_array = word.split("")
@@ -190,7 +189,7 @@ def play_words
         
                 # Check if word is correct using gem
                 if word.correct? && compare_word_arrays(word_to_array, letters_available) && word != ""
-                    puts "\n#{(" "+ word +" ").upcase.black.on_light_green} is valid.\n\n"
+                    puts "\n#{(" "+ word +" ").upcase.black.on_light_green} is valid and scores #{score(word)} points!\n\n"
                     break
                 else
                     message = "\n#{(" "+ word +" ").upcase.white.on_red} is invalid. Try another word.\n\n"
@@ -223,8 +222,25 @@ def define(word)
     return document.at_css('[value="1"]').to_str.capitalize
 end
 
+# Score a word
+def score(word)
+
+    # One point for each letter used
+    value = word.length
+
+    # Words using all 9 letters score 18
+    if value == 9
+        value = 18
+    end
+
+    return value
+end
+
 # The best possible answer that could be played is shown to the player, along with a definition
 def best_word
+
+    puts
+    puts "Searching Dictionary: "
 
     # uses all the letters -> need to create function that iterates though different combinations
     i = 9
