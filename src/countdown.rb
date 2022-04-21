@@ -10,6 +10,8 @@ require 'pastel'
 require 'word_wrap'
 require 'nokogiri'
 require 'open-uri'
+require 'timeout'
+require 'tty-progressbar'
 
 $pastel = Pastel.new
 
@@ -41,12 +43,7 @@ def draw_letter(array)
     
 end
 
-# Timer
-def timer(start_time)
-    # Mark the time this function was called
-    elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
-    return elapsed
-end
+
 
 # The letter picking loop/process
 def pick_letters()
@@ -152,41 +149,58 @@ def play_words
 
     message = ""
 
+    # Timer setup
     start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    play_time = 30
 
-    # Loop until 30 seconds / player enters a valid word
-    while timer(start_time) < 5.0
-        system 'clear'        
+    begin
+        # Code will be interrupted after 30 seconds
+        timer = Timeout::timeout(play_time) {   
+                     
+            while true
+                system 'clear'        
+        
+                puts "Try and find the longest possible word. Using each letter only ONCE."
+                puts "-----------------------------------------------------------------------"
+                
+                # Split the string, add spaces, join the string again
+                puts $pastel.bold.white.on_blue(" " + ($scrambled_word.split("").map { |c| c + " "}).join)
+                
+                puts "-----------------------------------------------------------------------"
 
-        puts "Try and find the longest possible word. Using each letter only ONCE."
-        puts timer(start_time)
-        puts "-----------------------------------------------------------------------"
+                time_left = (play_time - (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time)).to_i
+                puts "You have less than #{time_left}s remaining!"
         
-        # Split the string, add spaces, join the string again
-        puts $pastel.bold.white.on_blue(" " + ($scrambled_word.split("").map { |c| c + " "}).join)
+                puts message
+                
+                print "Enter a word: "
+                
+                # Remove all whitespace and brackets
+                word = gets.chomp.gsub(/\s+/, '').upcase
+                # word = word.gsub(/\[+$/, '')
+                
+                # Check if word uses only the letters provided
+                word_to_array = word.split("")
+                letters_available = $scrambled_word.split("")
         
-        puts "-----------------------------------------------------------------------"
-
-        puts message
-        
-        print "Enter a word: "
-        
-        # Remove all whitespace and brackets
-        word = gets.chomp.gsub(/\s+/, '').upcase
-        # word = word.gsub(/\[+$/, '')
-        
-        # Check if word uses only the letters provided
-        word_to_array = word.split("")
-        letters_available = $scrambled_word.split("")
-
-        # Check if word is correct using gem
-        if word.correct? && compare_word_arrays(word_to_array, letters_available) && word != ""
-            puts "\n#{(" "+ word +" ").upcase.black.on_light_green} is valid.\n\n"
-            break
-        else
-            message = "\n#{(" "+ word +" ").upcase.white.on_red} is invalid. Try another word.\n\n"
-        end
+                # Check if word is correct using gem
+                if word.correct? && compare_word_arrays(word_to_array, letters_available) && word != ""
+                    puts "\n#{(" "+ word +" ").upcase.black.on_light_green} is valid.\n\n"
+                    break
+                else
+                    message = "\n#{(" "+ word +" ").upcase.white.on_red} is invalid. Try another word.\n\n"
+                end
+            end
+        }
+    rescue
+        puts
+        puts '--------------------------------------------'
+        puts "TIME IS UP!"
+        puts '--------------------------------------------'
     end
+
+
+    
 
 end
 
@@ -213,9 +227,15 @@ def best_word
     testword = $scrambled_word.delete(' ')
     testword.downcase!
 
+    # progress bar
+    bar = TTY::ProgressBar.new("Working: [:bar] :percent")
+
     while i >= 2
         # Generate the words and display the longest ones
         # Maybe randomly pick a long word to display?
+
+        # progress = bar.iterate(downloader, CHUNK_SIZE).to_a.join
+        # puts progress
 
         # Add all possible words (en_us) of length (i) to an array
         best_words = Rword.generate(testword, i, true)

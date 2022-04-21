@@ -28,3 +28,7 @@ gem "httparty", "~> 0.20.0"
 gem "nokogiri", "~> 1.6"
 
 gem "pastel", "~> 0.8.0"
+
+gem "timeout", "~> 0.2.0"
+
+gem "tty-progressbar", "~> 0.18.2"
