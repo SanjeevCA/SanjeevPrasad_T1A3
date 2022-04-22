@@ -32,3 +32,5 @@ gem "pastel", "~> 0.8.0"
 gem "timeout", "~> 0.2.0"
 
 gem "tty-progressbar", "~> 0.18.2"
+
+gem "artii", "~> 2.1"

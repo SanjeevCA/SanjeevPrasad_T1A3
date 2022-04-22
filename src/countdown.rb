@@ -249,7 +249,7 @@ end
 def best_word
 
     puts
-    puts "Searching Dictionary: "
+    puts "Searching dictionary for best playable word: "
 
     # uses all the letters -> need to create function that iterates though different combinations
     i = 9
@@ -258,9 +258,9 @@ def best_word
     $bar.reset
     response = $bar.iterate($find_word, 20).to_a.join
 
-    # Limit the best words to only 3
-    if $best_words.length > 3                
-        $best_words = $best_words.sample(3)
+    # Limit the best words to only 4
+    if $best_words.length > 4                
+        $best_words = $best_words.sample(4)
     end
 
     # shuffle the words so no longer alphabetical
@@ -273,9 +273,10 @@ def best_word
     puts define_word.upcase.yellow.underline
     puts
     puts WordWrap.ww($pastel.italic.dim.yellow(define(define_word)), 80)
-    puts "-----------------------------------------------------------------------"
+
 
     if $best_words.length > 0
+        puts "-----------------------------------------------------------------------"
         print "Other possible word(s): "
         print $best_words.join(", ")
         puts
@@ -323,6 +324,7 @@ def player_stats(word)
     total_score = $scores.sum
     average_score = (total_score.to_f / $scores.size).round(2)
 
+    puts
     puts "-----------------------------------------------------------------------"
     puts "Total Score: #{total_score.to_s.green} \t Average Score: #{average_score.to_s.green} \t Best Word Played: #{$best_played_word.green}"
     
@@ -347,7 +349,7 @@ while true
     # Play again?
     prompt = TTY::Prompt.new
     choice = prompt.select("Would you like to play again?", %w(Yes No))
-
+    puts "\n\n"
     if choice == "No"
         break
     end

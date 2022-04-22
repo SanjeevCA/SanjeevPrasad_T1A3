@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    artii (2.1.2)
     colorize (0.8.1)
     dictionary_lookup (0.3.0)
     httparty (0.20.0)
@@ -50,6 +51,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  artii (~> 2.1)
   colorize (~> 0.8.1)
   dictionary_lookup (~> 0.3.0)
   httparty (~> 0.20.0)
