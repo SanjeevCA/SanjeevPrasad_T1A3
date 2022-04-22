@@ -16,7 +16,7 @@ require 'tty-progressbar'
 $pastel = Pastel.new
 
 # Progress bar for finding best work (as it can be a lengthy process)
-$bar = TTY::ProgressBar.new("[:bar]", bar_format: :blade, total: 100)
+$bar = TTY::ProgressBar.new("[:bar]", bar_format: :blade, total: 75)
 $best_words = []
 
 $scores = []
@@ -256,7 +256,7 @@ def best_word
 
     # Find the best possible words and show a progress bar 
     $bar.reset
-    response = $bar.iterate($find_word, 20).to_a.join
+    response = $bar.iterate($find_word, 15).to_a.join
 
     # Limit the best words to only 4
     if $best_words.length > 4                
