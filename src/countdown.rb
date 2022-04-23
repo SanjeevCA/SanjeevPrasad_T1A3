@@ -1,18 +1,25 @@
-# Do not display deprecation warning messages from gems.
-# original_verbosity = $VERBOSE
-# $VERBOSE = nil
+#                                         -GEMS-
+# ===========================================================================================
 
-require 'ru_bee'
-require 'rword'
-require 'tty-prompt'
-require 'colorize'
-require 'pastel'
-require 'word_wrap'
+# Playing words
+require 'ru_bee'  # Checking user input words for misspellings
+require 'rword'   # Generate best words from the scrambled letters
+require 'timeout' # Limit rounds to 30 seconds
+
+# Formatting
+require 'tty-prompt'        # Prompts for user input
+require 'tty-progressbar'   # Show progress bar for time consuming functions
+require 'artii'             # Banner display
+require 'pastel'            # Colour formatting
+require 'word_wrap'         # Wrapping large blocks of text neatly
+
+# Accessing web dictionary for definitions / word of the day
 require 'nokogiri'
 require 'open-uri'
-require 'timeout'
-require 'tty-progressbar'
-require 'artii'
+
+#                                       -VARIABLES-
+# ===========================================================================================
+
 
 # Formatting variables
 $pastel = Pastel.new
@@ -137,11 +144,11 @@ def create_letter_pools()
 end
 
 # Draw a letter from the pile in the argument
-def draw_letter(array)
+# def draw_letter(array)
 
-    return array.shift
+#     return array.shift
     
-end
+# end
 
 # Print the chosen letters
 def display_letters
@@ -219,15 +226,15 @@ def pick_letters()
 
                 # Draw the first vowel off the pile and place in the scrambled word
                 # A space is added before the letter for formatting purposes
-                # $scrambled_word += " " + draw_letter($vowels)
-                $scrambled_word += draw_letter($vowels)
+                # $scrambled_word += draw_letter($vowels)
+                $scrambled_word += $vowels.shift
 
                 vowel_num -= 1
             else
                 # Draw the first consonant off the pile and place in the scrambled word
                 # A space is added before the letter for formatting purposes
-                $scrambled_word += draw_letter($consonants)
-
+                # $scrambled_word += draw_letter($consonants)
+                $scrambled_word += $consonants.shift
                 cons_num -= 1
             end
         end
@@ -246,13 +253,13 @@ def compare_word_arrays(player_word, letter_pool)
 
     valid = true
     
-    # pp player_word
+    player_word = player_word.split("")
+    letter_pool = letter_pool.split("")
 
     player_word.each {|c|
         
         if letter_pool.include?(c)
             letter_pool.delete_at(letter_pool.index(c))
-            # letter_pool.delete_at(letter_pool.index(c) || letter_pool.length)
         else
             valid = false
         end
@@ -261,18 +268,18 @@ def compare_word_arrays(player_word, letter_pool)
     return valid
 end
 
-# Allow the player to input a word and check its validity
-def play_word
+# Allow the player to input words within a time limit --> Returns a valid word if entered by the player
+def play_round
 
     begin
 
         if $play_time != "notimer"
             # Code will be interrupted after 30 seconds
             timer = Timeout::timeout($play_time) {
-                input_word
+                return input_word
             }
         else
-            input_word
+            return input_word
         end
 
     rescue Timeout::Error
@@ -296,7 +303,7 @@ def play_word
 
 end
 
-# Ask the player to enter a word
+# Ask the player to enter a word and check its validity
 def input_word
 
     message = ""
@@ -330,12 +337,8 @@ def input_word
         # Remove all whitespace and brackets
         word = gets.chomp.gsub(/\s+/, '').upcase
         
-        # Check if word uses only the letters provided
-        word_to_array = word.split("")
-        letters_available = $scrambled_word.split("")
-
-        # Check if word is correct using gem
-        if word.correct? && compare_word_arrays(word_to_array, letters_available) && word != ""
+        # Check if word is correct using gem & if only available letters are used
+        if word.correct? && compare_word_arrays(word, $scrambled_word) && word != ""
             
             puts
             print $pastel.black.bold.on_green("#{(" "+ word +" ").upcase}")
@@ -346,7 +349,7 @@ def input_word
             return word
             break
         else
-            message = "\n#{(" "+ word +" ").upcase.white.on_red} is invalid. Try another word.\n\n"
+            message = "\n" + $pastel.white.bold.on_red("#{(" "+ word +" ").upcase}") + " is invalid. Try another word.\n\n"
         end
     end
 end
@@ -413,7 +416,7 @@ def best_word
     $best_words = $best_words.drop(1)
 
     puts
-    puts define_word.upcase.yellow.underline # Print the word
+    puts $pastel.yellow.bold.underline(define_word.upcase) # Print the word
     puts
     puts WordWrap.ww($pastel.italic.dim.yellow(define(define_word)), 85) # Print the definition (wrapping the text nicely)
     puts
@@ -493,7 +496,10 @@ end
 
 system 'clear'
 
+# Check for command line arguments
 check_argv
+
+# Display the Splash Screen / Title card
 splash_screen
 
 # Keep playing until player exits
@@ -503,7 +509,7 @@ while true
 
     pick_letters
 
-    word = play_word
+    word = play_round
 
     player_stats(word) 
 
