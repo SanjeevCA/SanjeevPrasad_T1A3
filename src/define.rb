@@ -4,6 +4,7 @@ require 'open-uri'
 require 'artii'
 require 'pastel'
 require 'tty-prompt'
+require 'word_wrap'
 
 def define(word)
 
@@ -51,7 +52,7 @@ def word_of_the_day
 
             # Print the definition using the CSS class
             # puts $pastel.yellow(document.at_css(".otd-item-headword__pos p").to_str.strip.gsub(/\s+/, ' '))
-            puts $pastel.dim.yellow.italic(document.at_css(".otd-item-headword__pos :nth-child(2)").to_str.strip.gsub(/\s+/, ' '))
+            puts WordWrap.ww($pastel.dim.yellow.italic(document.at_css(".otd-item-headword__pos :nth-child(2)").to_str.strip.gsub(/\s+/, ' ')), 85)
             puts
 
 
@@ -60,6 +61,7 @@ def word_of_the_day
         end
 end
 
+# Opening splash screen / title card
 def splash_screen
 
     # ASCII Banner art    
@@ -81,9 +83,8 @@ def splash_screen
 
 end
 
+# Check for command line arguments
 def check_argv
-
-
 
     ARGV.each do|a|     
         case a
@@ -93,7 +94,6 @@ def check_argv
             # puts "NO TIMER MODE ENABLED"
         end
     end
-
 
 end
 

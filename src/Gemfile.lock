@@ -3,7 +3,6 @@ GEM
   specs:
     artii (2.1.2)
     colorize (0.8.1)
-    dictionary_lookup (0.3.0)
     httparty (0.20.0)
       mime-types (~> 3.0)
       multi_xml (>= 0.5.2)
@@ -18,7 +17,6 @@ GEM
     multi_xml (0.6.0)
     nokogiri (1.6.8.1)
       mini_portile2 (~> 2.1.0)
-    oxford_dictionary (3.0.0)
     pastel (0.8.0)
       tty-color (~> 0.5)
     rainbow (2.1.0)
@@ -44,7 +42,6 @@ GEM
     tty-screen (0.8.1)
     unicode-display_width (2.1.0)
     wisper (2.0.1)
-    word_scramble (0.1.0)
     word_wrap (1.0.0)
 
 PLATFORMS
@@ -53,18 +50,15 @@ PLATFORMS
 DEPENDENCIES
   artii (~> 2.1)
   colorize (~> 0.8.1)
-  dictionary_lookup (~> 0.3.0)
   httparty (~> 0.20.0)
   meaning (~> 0.1.5)
   nokogiri (~> 1.6)
-  oxford_dictionary (~> 3.0)
   pastel (~> 0.8.0)
   ru_bee (~> 0.1.1)
   rword (~> 1.1)
   timeout (~> 0.2.0)
   tty-progressbar (~> 0.18.2)
   tty-prompt (~> 0.23.1)
-  word_scramble (~> 0.1.0)
   word_wrap (~> 1.0)
 
 BUNDLED WITH

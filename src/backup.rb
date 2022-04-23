@@ -12,114 +12,20 @@ require 'nokogiri'
 require 'open-uri'
 require 'timeout'
 require 'tty-progressbar'
-require 'artii'
 
-# Formatting variables
 $pastel = Pastel.new
-$screen_width = 75
-$bar = TTY::ProgressBar.new("[:bar]", bar_format: :blade, total: $screen_width)
-$divider = "-" * ($screen_width+1)
 
-
-# Score keeping variables
+# Progress bar for finding best work (as it can be a lengthy process)
+$bar = TTY::ProgressBar.new("[:bar]", bar_format: :blade, total: 75)
 $best_words = []
+
 $scores = []
 $best_played_word = ""
-$play_time = 30
+
+# require_relative './define'
 
 #                                       -FUNCTIONS-
 # ===========================================================================================
-
-# ASCII logo/banner at the top of page
-def print_logo
-    # ASCII Banner art    
-    a = Artii::Base.new :font => 'ogre'
-    puts $pastel.bold.white.on_blue(a.asciify('   c o u n t d o w n   '))
-
-    # Subtitle
-    puts $pastel.bold.white.on_green("                 The popular game show in your command line!                 ")
-end
-
-# Opening splash screen / title card
-def splash_screen
-
-    print_logo
-
-    # Instructions
-    puts
-    puts $pastel.italic("How to play:")
-    puts
-    puts $pastel.italic("  1. You will first draw 9 random letters (a mix of vowels and consonants)")
-    puts $pastel.italic("  2. Enter the longest possible word using the drawn letters.")
-    puts $pastel.italic("  3. Score more points for longer words.")
-    puts $pastel.italic("  4. Remember, you only have 30 seconds to play a word!")
-    puts
-
-    # Show WOTD if the command line argument was input
-    if $wotd
-        word_of_the_day
-    end
-
-    puts "=============================================================================\n\n"
-    
-    prompt = TTY::Prompt.new
-    prompt.keypress($pastel.green("Press key any key to continue..."))
-
-end
-
-# Check for command line arguments
-def check_argv
-
-    ARGV.each do|a|     
-        case a
-        when "wotd"
-            $wotd = true
-        when "notimer"
-            $play_time = "notimer"
-        end
-    end
-
-    # After reading arguments, clear them so that we can read user input with 'gets'
-    ARGV.clear
-
-end
-
-# Get the word of the day from: https://www.dictionary.com/e/word-of-the-day/
-def word_of_the_day
-
-    # Subtitle
-    puts $pastel.bold.black.on_yellow("                               WORD OF THE DAY                               ")
-    puts
-
-        begin
-            # Go to the word of the day page on dictionary.com
-            url = 'https://www.dictionary.com/e/word-of-the-day/'
-
-            # Scrape the HTML of the page using Nokogiri
-            document = Nokogiri::HTML(URI.open(url))
-    
-            # Search for the definition by finding the element where value=1 in the HTML code.
-            # This denotes the first definition
-            # return document.at_css('[value="1"]').to_str.capitalize
-
-            # Print the date using the CSS class
-            puts $pastel.yellow(document.at_css(".otd-item-headword__date div").to_str)
-            puts
-
-            # Print the word using the CSS class
-            puts $pastel.yellow.bold.underline(document.at_css(".otd-item-headword__word h1").to_str.upcase)
-            puts
-
-            # Print the definition using the CSS class
-            # puts $pastel.yellow(document.at_css(".otd-item-headword__pos p").to_str.strip.gsub(/\s+/, ' '))
-            puts WordWrap.ww($pastel.dim.yellow.italic(document.at_css(".otd-item-headword__pos :nth-child(2)").to_str.strip.gsub(/\s+/, ' ')), 85)
-            puts
-
-
-        rescue
-            puts "Sorry, Word of the Day could not be obtained."
-        end
-end
 
 # Generate the pools of vowels and consonants
 # The frequency of each letter is obtained from: http://www.thecountdownpage.com/letters.htm
@@ -144,25 +50,7 @@ def draw_letter(array)
     
 end
 
-# Print the chosen letters
-def display_letters
-    # Split the string, add spaces, join the string again
-    puts
-    print " " * 28
-    puts $pastel.bold.white.on_blue(" " + ($scrambled_word.split("").map { |c| c + " "}).join)                
-    puts
-end
 
-# Centre align text
-def centre_text(text, width)
-    
-    space_needed = ((width - text.length)/2).to_i
-    if space_needed < 0
-        space_needed = 0
-    end
-    return ((" ")*space_needed) + text + ((" ")*space_needed)
-
-end
 
 # The letter picking loop/process
 def pick_letters()
@@ -175,8 +63,6 @@ def pick_letters()
 
     while i > 0 
         system 'clear'
-
-        print_logo
 
         choose_text = ""
 
@@ -193,10 +79,13 @@ def pick_letters()
             choose_text = " Please pick:" + choose_text
         end
 
-        puts
-        puts centre_text(("You must choose #{i} more letters." + choose_text), 75)
+        puts "You must choose #{i} more letters." + choose_text
+        puts "-----------------------------------------------------------------------"
 
-        display_letters
+        # puts $pastel.bold.white.on_blue($scrambled_word)
+        puts $pastel.bold.white.on_blue(" " + ($scrambled_word.split("").map { |c| c + " "}).join)
+
+        puts "-----------------------------------------------------------------------\n\n"
     
         # If the remaining letters to be picked equal the remaining vowels to be picked
         # then automatically pick the remaining vowels
@@ -265,94 +154,65 @@ end
 # Allow the player to input a word and check its validity
 def play_word
 
+    message = ""
+
+    # Timer setup
+    start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    play_time = 31
+
     begin
+        # Code will be interrupted after 30 seconds
+        timer = Timeout::timeout(play_time) {   
+                     
+            while true
+                system 'clear'        
+        
+                puts "Try and find the longest possible word. Using each letter only ONCE."
+                puts "-----------------------------------------------------------------------"
+                
+                # Split the string, add spaces, join the string again
+                puts $pastel.bold.white.on_blue(" " + ($scrambled_word.split("").map { |c| c + " "}).join)
+                
+                puts "-----------------------------------------------------------------------"
 
-        if $play_time != "notimer"
-            # Code will be interrupted after 30 seconds
-            timer = Timeout::timeout($play_time) {
-                input_word
-            }
-        else
-            input_word
-        end
-
-    rescue Timeout::Error
-
-        puts
-        puts $pastel.bold.white.on_red(centre_text("TIME IS UP!  NO POINTS SCORED", $screen_width + 2))
-        puts
-
-        return ""
-
+                time_left = (play_time - (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time)).to_i
+                puts "You have less than #{time_left}s remaining!"
+        
+                puts message
+                
+                print "Enter a word: "
+                
+                # Remove all whitespace and brackets
+                word = gets.chomp.gsub(/\s+/, '').upcase
+                
+                # Check if word uses only the letters provided
+                word_to_array = word.split("")
+                letters_available = $scrambled_word.split("")
+        
+                # Check if word is correct using gem
+                if word.correct? && compare_word_arrays(word_to_array, letters_available) && word != ""
+                    puts "\n#{(" "+ word +" ").upcase.black.on_light_green} is valid and scores #{score(word)} points!\n\n"
+                    return word
+                    break
+                else
+                    message = "\n#{(" "+ word +" ").upcase.white.on_red} is invalid. Try another word.\n\n"
+                end
+            end
+        }
     rescue
-
         puts
-        puts $pastel.bold.white.on_red(centre_text("SORRY! AN HAS ERROR OCCURRED", $screen_width + 2))
-        puts
-
+        puts '--------------------------------------------'
+        puts "TIME IS UP!"
+        puts '--------------------------------------------'
         return ""
-    end 
+    end
+
 
     
 
 end
 
-# Ask the player to enter a word
-def input_word
-
-    message = ""
-
-    # Timer setup
-    start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
-    while true
-
-        system 'clear'
-        print_logo
-        
-        puts
-        puts centre_text("Try and find the longest possible word. Using each letter only ONCE.", $screen_width)
-
-        display_letters
-
-        # Calculate and display the time remaining
-        if $play_time != "notimer"
-            time_left = (($play_time - (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time)).ceil).to_i
-            puts centre_text("------- You have less than #{time_left}s remaining! -------", $screen_width)
-        else
-            puts centre_text("------- UNLIMITED TIME MODE -------", $screen_width)
-        end
-
-        # Print a message if the previous word entered is invalid
-        puts message
-        
-        print "Enter a word: "
-        
-        # Remove all whitespace and brackets
-        word = gets.chomp.gsub(/\s+/, '').upcase
-        
-        # Check if word uses only the letters provided
-        word_to_array = word.split("")
-        letters_available = $scrambled_word.split("")
-
-        # Check if word is correct using gem
-        if word.correct? && compare_word_arrays(word_to_array, letters_available) && word != ""
-            
-            puts
-            print $pastel.black.bold.on_green("#{(" "+ word +" ").upcase}")
-            print " is valid and scores " 
-            puts $pastel.green.bold("#{score(word)} points!")
-            puts
-
-            return word
-            break
-        else
-            message = "\n#{(" "+ word +" ").upcase.white.on_red} is invalid. Try another word.\n\n"
-        end
-    end
-end
-
-# Get the definition of 'word' from: https://www.dictionary.com/e/word-of-the-day/
+# Define a word
 def define(word)
     begin
         # Go to the word page on dictionary.com
@@ -388,11 +248,8 @@ end
 # The best possible answer that could be played is shown to the player, along with a definition
 def best_word
 
-    # Subtitle    
-    puts $pastel.bold.black.on_yellow("                              DICTIONARY CORNER                              ")
-
     puts
-    puts centre_text("Searching dictionary for best playable word:", $screen_width)
+    puts "Searching dictionary for best playable word: "
 
     # uses all the letters -> need to create function that iterates though different combinations
     i = 9
@@ -412,15 +269,14 @@ def best_word
     # Find and display the definition of the top word.
     define_word = $best_words[0]
     $best_words = $best_words.drop(1)
-
+    puts "-----------------------------------------------------------------------"
+    puts define_word.upcase.yellow.underline
     puts
-    puts define_word.upcase.yellow.underline # Print the word
-    puts
-    puts WordWrap.ww($pastel.italic.dim.yellow(define(define_word)), 85) # Print the definition (wrapping the text nicely)
+    puts WordWrap.ww($pastel.italic.dim.yellow(define(define_word)), 85)
 
 
     if $best_words.length > 0
-        puts
+        puts "-----------------------------------------------------------------------"
         print "Other possible word(s): "
         print $best_words.join(", ")
         puts
@@ -460,7 +316,6 @@ $find_word = Enumerator.new do |y|
     end
 end
 
-# Display the player score / stats
 def player_stats(word)
 
     if word.length > $best_played_word.length
@@ -470,22 +325,15 @@ def player_stats(word)
     average_score = (total_score.to_f / $scores.size).round(2)
 
     puts
-    puts $divider
+    puts "-----------------------------------------------------------------------"
     puts "Total Score: #{total_score.to_s.green} \t Average Score: #{average_score.to_s.green} \t Best Word Played: #{$best_played_word.green}"
-    puts $divider
     
 end
-
 
 #                                       -MAIN PROGRAM-
 # ===========================================================================================
 
-system 'clear'
-
-check_argv
-splash_screen
-
-while true    
+while true
 
     create_letter_pools
 
@@ -493,16 +341,11 @@ while true
 
     word = play_word
 
-    # slight delay before finding the best word
-    sleep(1.0)
-
     best_word
 
     player_stats(word)
 
-
-    
-    puts
+    puts "-----------------------------------------------------------------------"
     # Play again?
     prompt = TTY::Prompt.new
     choice = prompt.select("Would you like to play again?", %w(Yes No))
@@ -510,6 +353,7 @@ while true
     if choice == "No"
         break
     end
+    
 
 end
 
