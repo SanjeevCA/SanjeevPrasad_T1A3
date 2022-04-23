@@ -207,13 +207,13 @@ def pick_letters()
         # If the remaining letters to be picked equal the remaining vowels to be picked
         # then automatically pick the remaining vowels
         if i <= vowel_num
-            $scrambled_word += draw_letter($vowels)
+            $scrambled_word += $vowels.shift
             vowel_num -= 1
             sleep(0.2) # slow the program down to see the letters being picked automatically
 
         # Same with the consonants 
         elsif i <= cons_num
-            $scrambled_word += draw_letter($consonants)
+            $scrambled_word += $consonants.shift
             cons_num
             sleep(0.2)            
 
@@ -226,14 +226,12 @@ def pick_letters()
 
                 # Draw the first vowel off the pile and place in the scrambled word
                 # A space is added before the letter for formatting purposes
-                # $scrambled_word += draw_letter($vowels)
                 $scrambled_word += $vowels.shift
 
                 vowel_num -= 1
             else
                 # Draw the first consonant off the pile and place in the scrambled word
                 # A space is added before the letter for formatting purposes
-                # $scrambled_word += draw_letter($consonants)
                 $scrambled_word += $consonants.shift
                 cons_num -= 1
             end
