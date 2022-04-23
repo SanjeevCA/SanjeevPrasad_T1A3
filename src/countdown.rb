@@ -60,7 +60,8 @@ def splash_screen
         word_of_the_day
     end
 
-    puts "=============================================================================\n\n"
+    puts $divider
+    puts
     
     prompt = TTY::Prompt.new
     prompt.keypress($pastel.green("Press key any key to continue..."))
@@ -69,11 +70,12 @@ end
 
 # Check for command line arguments
 def check_argv
-
     ARGV.each do|a|     
         case a
+        # Display Word of the Day
         when "wotd"
             $wotd = true
+        # Enable unlimited timer mode
         when "notimer"
             $play_time = "notimer"
         end
@@ -81,7 +83,6 @@ def check_argv
 
     # After reading arguments, clear them so that we can read user input with 'gets'
     ARGV.clear
-
 end
 
 # Get the word of the day from: https://www.dictionary.com/e/word-of-the-day/
@@ -97,10 +98,6 @@ def word_of_the_day
 
             # Scrape the HTML of the page using Nokogiri
             document = Nokogiri::HTML(URI.open(url))
-    
-            # Search for the definition by finding the element where value=1 in the HTML code.
-            # This denotes the first definition
-            # return document.at_css('[value="1"]').to_str.capitalize
 
             # Print the date using the CSS class
             puts $pastel.yellow(document.at_css(".otd-item-headword__date div").to_str)
@@ -111,10 +108,12 @@ def word_of_the_day
             puts
 
             # Print the definition using the CSS class
-            # puts $pastel.yellow(document.at_css(".otd-item-headword__pos p").to_str.strip.gsub(/\s+/, ' '))
             puts WordWrap.ww($pastel.dim.yellow.italic(document.at_css(".otd-item-headword__pos :nth-child(2)").to_str.strip.gsub(/\s+/, ' ')), 85)
             puts
 
+            # Reference
+            puts $pastel.yellow("- From Dictionary.com")
+            puts
 
         rescue
             puts "Sorry, Word of the Day could not be obtained."
@@ -417,6 +416,11 @@ def best_word
     puts define_word.upcase.yellow.underline # Print the word
     puts
     puts WordWrap.ww($pastel.italic.dim.yellow(define(define_word)), 85) # Print the definition (wrapping the text nicely)
+    puts
+
+    # Reference
+    puts $pastel.yellow("- From Dictionary.com")
+    puts
 
 
     if $best_words.length > 0
@@ -425,6 +429,11 @@ def best_word
         print $best_words.join(", ")
         puts
     end
+
+    puts
+    puts $divider
+    puts
+
 end
 
 # Enumerator to find the best word using 'rword' gem
@@ -469,10 +478,12 @@ def player_stats(word)
     total_score = $scores.sum
     average_score = (total_score.to_f / $scores.size).round(2)
 
+    puts $divider
+    print "Total Score: " + $pastel.green.bold(total_score.to_s)
+    print "\t  Average Score: " + $pastel.green.bold(average_score.to_s)
+    puts  "\t Best Word Played: " + $pastel.green.bold($best_played_word)
+    puts $divider
     puts
-    puts $divider
-    puts "Total Score: #{total_score.to_s.green} \t Average Score: #{average_score.to_s.green} \t Best Word Played: #{$best_played_word.green}"
-    puts $divider
     
 end
 
@@ -485,6 +496,7 @@ system 'clear'
 check_argv
 splash_screen
 
+# Keep playing until player exits
 while true    
 
     create_letter_pools
@@ -493,16 +505,13 @@ while true
 
     word = play_word
 
+    player_stats(word) 
+
     # slight delay before finding the best word
     sleep(1.0)
 
     best_word
-
-    player_stats(word)
-
-
     
-    puts
     # Play again?
     prompt = TTY::Prompt.new
     choice = prompt.select("Would you like to play again?", %w(Yes No))
