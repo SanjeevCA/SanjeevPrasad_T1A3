@@ -465,17 +465,22 @@ splash_screen
 # Keep playing until player exits
 while true
 
+  # Create the letter pools that will be drawn from
   create_letter_pools
 
+  # Player draws letters
   pick_letters
 
+  # Player can play their word which is saved as a variable
   word = play_round
 
+  # Display the score and statistics for the played word
   player_stats(word)
 
-  # slight delay before finding the best word
+  # Slight delay before finding the best word
   sleep(1.0)
 
+  # The best playable word is generated and displayed
   best_word
 
   # Play again?
