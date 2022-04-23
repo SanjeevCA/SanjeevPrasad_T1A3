@@ -4,22 +4,13 @@ source "https://rubygems.org"
 
 # gem "rails"
 
-gem "colorize", "~> 0.8.1"
-
-
 gem "ru_bee", "~> 0.1.1"
-
 
 gem "rword", "~> 1.1"
 
 gem "tty-prompt", "~> 0.23.1"
 
-
-
-gem "meaning", "~> 0.1.5"
-
 gem "word_wrap", "~> 1.0"
-
 
 gem "nokogiri", "~> 1.6"
 
