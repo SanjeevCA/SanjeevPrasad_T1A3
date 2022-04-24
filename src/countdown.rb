@@ -23,7 +23,7 @@ require 'open-uri'
 # Formatting variables
 $pastel = Pastel.new
 $screen_width = 75
-$bar = TTY::ProgressBar.new('[:bar]', bar_format: :blade, total: $screen_width)
+$bar = TTY::ProgressBar.new('[:bar]', total: $screen_width)
 $divider = '-' * ($screen_width + 1)
 
 # Score keeping variables
@@ -89,7 +89,7 @@ end
 # Get the word of the day from: https://www.dictionary.com/e/word-of-the-day/
 def word_of_the_day
   # Subtitle
-  puts $pastel.bold.black.on_yellow('                               WORD OF THE DAY                               ')
+  puts $pastel.dim.black.on_yellow('                               WORD OF THE DAY                               ')
   puts
 
   begin
@@ -308,7 +308,7 @@ def input_word
     if word.correct? && compare_word_arrays(word, $scrambled_word) && word != ''
 
       puts
-      print $pastel.black.bold.on_green((' ' + word + ' ').upcase.to_s)
+      print $pastel.bold.white.on_green((' ' + word + ' ').upcase.to_s)
       print ' is valid and scores '
       puts $pastel.green.bold("#{score(word)} points!")
       puts
@@ -354,7 +354,7 @@ end
 # The best possible answer that could be played is shown to the player, along with a definition
 def best_word
   # Subtitle
-  puts $pastel.bold.black.on_yellow('                              DICTIONARY CORNER                              ')
+  puts $pastel.dim.black.on_yellow('                              DICTIONARY CORNER                              ')
 
   puts
   puts centre_text('Searching dictionary for best playable word:', $screen_width)
