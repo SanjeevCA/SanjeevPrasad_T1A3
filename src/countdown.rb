@@ -118,14 +118,8 @@ def word_of_the_day
     puts $pastel.yellow('- from Dictionary.com')
     puts
   rescue SocketError, Net::ReadTimeout => e
-    puts
-    puts $pastel.bold.white.on_red(centre_text('NETWORK ERROR', $screen_width + 2))
-    puts
-
-    puts 'Sorry, Dictionary.com could not be reached to find a definition'
-    puts 'Please check your connection and try again.'
-    puts
-    puts WordWrap.ww("Error: #{e}", 85)
+    error_text = "Sorry, Dictionary.com could not be reached to obtain the Word of the day.\nPlease check your connection and try again.\n\n"
+    error_message('NETWORK ERROR', error_text, e)
   end
 end
 
@@ -232,18 +226,24 @@ end
 
 # Check to see if the user used only the available letters
 def compare_word_arrays(player_word, letter_pool)
-  valid = true
 
-  player_word = player_word.split('')
-  letter_pool = letter_pool.split('')
+    valid = true
 
-  player_word.each do |c|
-    if letter_pool.include?(c)
-      letter_pool.delete_at(letter_pool.index(c))
-    else
-      valid = false
+    begin
+        player_word = player_word.split('')
+        letter_pool = letter_pool.split('')
+
+        player_word.each do |c|
+            if letter_pool.include?(c)
+            letter_pool.delete_at(letter_pool.index(c))
+            else
+            valid = false
+            end
+        end
+    rescue StandardError => e
+        error_text = 'Sorry, an error occurred while checking your input.'
+        error_message('ERROR', error_text, e)
     end
-  end
 
   valid
 end
@@ -264,10 +264,9 @@ rescue Timeout::Error
   puts
 
   ''
-rescue StandardError
-  puts
-  puts $pastel.bold.white.on_red(centre_text('SORRY! AN HAS ERROR OCCURRED', $screen_width + 2))
-  puts
+rescue StandardError => e
+
+  error_message('SORRY! AN HAS ERROR OCCURRED', "", e)
 
   ''
 end
@@ -333,17 +332,11 @@ def define(word)
   # This denotes the first definition
   document.at_css('[value="1"]').to_str.capitalize
 rescue SocketError, Net::ReadTimeout => e
-  puts
-  puts $pastel.bold.white.on_red(centre_text('NETWORK ERROR', $screen_width + 2))
-  puts
-  puts 'Sorry, Dictionary.com could not be reached to find a definition'
-  puts 'Please check your connection and try again.'
-  puts
-  puts WordWrap.ww("Error: #{e}", 85)
-
-  ''
+    error_text = "Sorry, Dictionary.com could not be reached to find a definition.\nPlease check your connection and try again.\n\n"
+    error_message('NETWORK ERROR', error_text, e)
+  return '' # Return an empty string in the case of a Network error
 rescue StandardError
-  'Sorry, a definition could not be found.'
+  'Sorry, a definition could not be found.' # Return an apology if a definition could not be found
 end
 
 # Score a word
@@ -439,16 +432,32 @@ end
 
 # Display the player score / stats
 def player_stats(word)
-  $best_played_word = word if word.length > $best_played_word.length
-  total_score = $scores.sum
-  average_score = (total_score.to_f / $scores.size).round(2)
+    begin
+        $best_played_word = word if word.length > $best_played_word.length
+        total_score = $scores.sum
+        average_score = (total_score.to_f / $scores.size).round(2)
 
-  puts $divider
-  print 'Total Score: ' + $pastel.green.bold(total_score.to_s)
-  print "\t  Average Score: " + $pastel.green.bold(average_score.to_s)
-  puts  "\t Best Word Played: " + $pastel.green.bold($best_played_word)
-  puts $divider
-  puts
+        puts $divider
+        print 'Total Score: ' + $pastel.green.bold(total_score.to_s)
+        print "\t  Average Score: " + $pastel.green.bold(average_score.to_s)
+        puts  "\t Best Word Played: " + $pastel.green.bold($best_played_word)
+        puts $divider
+        puts
+    rescue StandardError => e
+        error_text = "Sorry, an error occurred while calculating your score.\n"
+        error_message('ERROR', error_text, e)
+    end
+end
+
+# Error message formatted
+def error_message(label, text, error)
+    puts $divider
+    puts $pastel.bold.white.on_red(centre_text(label.to_s, $screen_width + 2))
+    puts    
+    puts text
+    puts WordWrap.ww("Error: #{error}", 85)
+    puts $divider
+    puts
 end
 
 #                                       -MAIN PROGRAM-
